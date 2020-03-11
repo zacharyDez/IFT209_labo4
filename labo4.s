@@ -1,4 +1,4 @@
-.include "macros.s
+.include "macros.s"
 
 .global main
 
@@ -47,23 +47,50 @@ dechiffrer:
 	// w19 et w20 contiennent mots decryptees
 	SAVE						//
 	mov w21, 0					// i = 0
-	cmp w21, 32					// if(i==32)
+	cmp w21, 33					// if(i==33)
 	b.ne dechiffrerSingle		// dechiffrer(w0, w1, w2, w3, w4, w5)
 	RESTORE						//
 	ret							//
 
 dechiffreSingle:
+	// Implementation circuit logique de l'enonce
+								//
+	// PREMIER BLOC				//
+	// premiere ligne			//
 	lsl w22, w0, 4				// w22 = w0 4 bits gauche TODO
-	add w22, w22, w0			// w22 = w22 + w4
-
-	add w23, w21, 33			// w23 = i + 33
+	add w22, w22, w4			// w22 = w22 + w4
+	// deuxieme ligne			//
+	sub w23, w21, 33			// w23 = 33 - i
 	mul w23, w23, delta			// w23 = w23*delta
-
 	add w24, w23, w0			// w24 = w23+w0
-
-	lsr w25, w0, 5				// w25 = w0 5 bits a droit
-
-
+	// troisieme ligne			//
+	lsr w26, w0, 5				// w26 = w0 5 bits a droit
+	add w26, w26, w5			// w26 += w5
+	// ou exclusif 3 termes		//
+	eor w25, w22, w24			// ouExclu(w22, w24)
+	eor w25, w25, w26			// ouExclu(w25, w26)
+								//
+	// DEUXIEME BLOC			//
+	// seulement conserver registre w23 (weird delta operations)
+	//  et registres des intrants
+	sub w22, w1, w25			// w22 = w1 - w25
+	// premiere ligne
+	lsl w24, w22, 4				// w24 = w22 4 bits gauche
+	add w24, w24, w2			// w24 = w24 + w2
+	// deuxieme ligne
+	add w25, w22, w23			// w25 = w24 + w23
+	// troisieme ligne
+	lsr w26, w22, 5				// w26 = w22 4 bits a droite
+	add w26, w26, w3			// w26 = w26+w3
+	// ou exclusif
+	eor w24, w24, w25			// w24 = ouExclu(w24, w25)
+	eor w24, w24, w26			// w24 = ouExclu(w24, w26)
+	// sub pour obtenir nouveau w0
+	sub w25, w0, w24			// w25 = w0 - w25
+	// valeur decodee dans w22 et w25
+	mov w0, w25					// w0 = w25
+	mov w1, w22					// w1 = w21
+	// fin single
 	add w21, w21, 1				// i+=1
 	b dechiffrer				// branch dechiffrer
 
