@@ -1,42 +1,41 @@
 .include "macros.s"
+.global  main
 
-.global main
-
-main: 							// main()
-	// Lire mots w0 et w1 		// {
-	// à déchiffrer 			//
-	adr x0, fmtEntree 			//
-	adr x1, temp 				//
-	bl scanf 					// scanf("%X", &temp)
-	ldr w19, temp 				// w0 = temp
-								//
-	adr x0, fmtEntree 			//
-	adr x1, temp 				//
-	bl scanf 					// scanf("%X", &temp)
-	ldr w20, temp 				// w1 = temp
-								//
-	// Déchiffrer w0 et w1 		//
-	mov w0, w19 				//
-	mov w1, w20 				//
-	ldr w2, k0 					//
-	ldr w3, k1 					//
-	ldr w4, k2 					//
-	ldr w5, k3 					//
-	bl dechiffrer 				// w0, w1 = dechiffrer(w0, w1, w2, w3, w4, w5)
-								//
-	// Afficher message secret 	//
-	mov w19, w0 				//
-	mov w20, w1 				//
-								//
-	adr x0, fmtSortie 			//
-	mov w1, w19 				//
-	mov w2, w20 				//
-	bl printf 					// printf("%c %c\n", w0, w1)
-								//
-	// Quitter programme 		//
-	mov x0, 0 					//
-	bl exit 					// return 0
-								// }
+main:                           // main()
+    // Lire mots w0 et w1       // {
+    //             à déchiffrer //
+    adr     x0, fmtEntree       //
+    adr     x1, temp            //
+    bl      scanf               //   scanf("%X", &temp)
+    ldr     w19, temp           //   w0 = temp
+                                //
+    adr     x0, fmtEntree       //
+    adr     x1, temp            //
+    bl      scanf               //   scanf("%X", &temp)
+    ldr     w20, temp           //   w1 = temp
+                                //
+    // Déchiffrer w0 et w1      //
+    mov     w0, w19             //
+    mov     w1, w20             //
+    ldr     w2, k0              //
+    ldr     w3, k1              //
+    ldr     w4, k2              //
+    ldr     w5, k3              //
+    bl      dechiffrer          //   w0, w1 = dechiffrer(w0, w1, w2, w3, w4, w5)
+                                //
+    // Afficher message secret  //
+    mov     w19, w0             //
+    mov     w20, w1             //
+                                //
+    adr     x0, fmtSortie       //
+    mov     w1, w19             //
+    mov     w2, w20             //
+    bl      printf              //   printf("%c %c\n", w0, w1)
+                                //
+    // Quitter programme        //
+    mov     x0, 0               //
+    bl      exit                //   return 0
+                                // }
 /*******************************************************************************
 Procédure de déchiffrement de l'algorithme TEA
 Entrées: - mots w0 et w1 à déchiffrer (32 bits chacun)
@@ -52,7 +51,7 @@ dechiffrer:
 	RESTORE						//
 	ret							//
 
-dechiffreSingle:
+dechiffrerSingle:
 	// Implementation circuit logique de l'enonce
 								//
 	// PREMIER BLOC				//
@@ -61,7 +60,8 @@ dechiffreSingle:
 	add w22, w22, w4			// w22 = w22 + w4
 	// deuxieme ligne			//
 	sub w23, w21, 33			// w23 = 33 - i
-	mul w23, w23, delta			// w23 = w23*delta
+	ldr w27, delta				//
+	mul w23, w23, w27			// w23 = w23*delta
 	add w24, w23, w0			// w24 = w23+w0
 	// troisieme ligne			//
 	lsr w26, w0, 5				// w26 = w0 5 bits a droit
@@ -72,17 +72,17 @@ dechiffreSingle:
 								//
 	// DEUXIEME BLOC			//
 	// seulement conserver registre w23 (weird delta operations)
-	//  et registres des intrants
+	// et registres des intrants//
 	sub w22, w1, w25			// w22 = w1 - w25
-	// premiere ligne
+	// premiere ligne			//
 	lsl w24, w22, 4				// w24 = w22 4 bits gauche
 	add w24, w24, w2			// w24 = w24 + w2
-	// deuxieme ligne
+	// deuxieme ligne			//
 	add w25, w22, w23			// w25 = w24 + w23
-	// troisieme ligne
+	// troisieme ligne			//
 	lsr w26, w22, 5				// w26 = w22 4 bits a droite
 	add w26, w26, w3			// w26 = w26+w3
-	// ou exclusif
+	// ou exclusif				//
 	eor w24, w24, w25			// w24 = ouExclu(w24, w25)
 	eor w24, w24, w26			// w24 = ouExclu(w24, w26)
 	// sub pour obtenir nouveau w0
@@ -90,7 +90,7 @@ dechiffreSingle:
 	// valeur decodee dans w22 et w25
 	mov w0, w25					// w0 = w25
 	mov w1, w22					// w1 = w21
-	// fin single
+	// fin single				//
 	add w21, w21, 1				// i+=1
 	b dechiffrer				// branch dechiffrer
 
