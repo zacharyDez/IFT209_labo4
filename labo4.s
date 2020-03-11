@@ -24,6 +24,7 @@ main:                           // main()
     bl      dechiffrer          //   w0, w1 = dechiffrer(w0, w1, w2, w3, w4, w5)
                                 //
     // Afficher message secret  //
+done:
     mov     w19, w0             //
     mov     w20, w1             //
                                 //
@@ -45,9 +46,11 @@ Sortie: mots w0 et w1 déchiffrés
 dechiffrer:
 	// w19 et w20 contiennent mots decryptees
 	SAVE						//
-	mov w21, 0					// i = 0
-	cmp w21, 33					// if(i==33)
+	mov w21, 1					// i = 1
+boucle:
+	cmp w21, 33					// if(i==32)
 	b.ne dechiffrerSingle		// dechiffrer(w0, w1, w2, w3, w4, w5)
+
 	RESTORE						//
 	ret							//
 
@@ -89,10 +92,10 @@ dechiffrerSingle:
 	sub w25, w0, w24			// w25 = w0 - w25
 	// valeur decodee dans w22 et w25
 	mov w0, w25					// w0 = w25
-	mov w1, w22					// w1 = w21
+	mov w1, w22					// w1 = w22
 	// fin single				//
 	add w21, w21, 1				// i+=1
-	b dechiffrer				// branch dechiffrer
+	b boucle					// branch boucle
 
 .section ".rodata"
 
